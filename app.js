@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const { sequelize } = require("./models");
 const session = require("express");
+const passport = require("passport");
 
 require("dotenv").config();
 
@@ -40,6 +41,9 @@ app.use(
     }
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, "public")));
 
