@@ -24,7 +24,7 @@ module.exports = class User extends Model {
           defaultValue: "local",
           allowNull: false
         },
-        snsID: {
+        snsId: {
           type: Sequelize.STRING(30)
         },
         selfIntro: {

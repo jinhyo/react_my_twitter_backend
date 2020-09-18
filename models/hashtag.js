@@ -22,6 +22,6 @@ module.exports = class Hashtag extends Model {
   }
 
   static associate(db) {
-    db.Hashtag.belongsToMany(db.Tweet, { through: "tweetHashtag" });
+    db.Hashtag.belongsToMany(db.Tweet, { through: "tweetHashtags" });
   }
 };

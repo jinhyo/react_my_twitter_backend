@@ -4,7 +4,7 @@ module.exports = {
   development: {
     username: "root",
     password: process.env.DB_SECRET,
-    database: "my-twitter",
+    database: "my_twitter",
     host: "127.0.0.1",
     dialect: "mysql",
     operatorsAliases: "0",
@@ -14,17 +14,19 @@ module.exports = {
   tst: {
     username: "root",
     password: process.env.DB_SECRET,
-    database: "my-twitter",
+    database: "my_twitter",
     host: "127.0.0.1",
     dialect: "mysql",
+    timezone: "+09:00",
     operatorsAliases: false
   },
   poduction: {
     username: "root",
     password: process.env.DB_SECRET,
-    database: "my-twitter",
+    database: "my_twitter",
     host: "127.0.0.1",
     dialect: "mysql",
+    timezone: "+09:00",
     operatorsAliases: false
   }
 };
