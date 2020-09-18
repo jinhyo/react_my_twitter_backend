@@ -24,19 +24,13 @@ module.exports = class User extends Model {
           defaultValue: "local",
           allowNull: false
         },
-        snsId: {
-          type: Sequelize.STRING(30)
-        },
-        selfIntro: {
-          type: Sequelize.STRING(100)
-        },
-        location: {
-          type: Sequelize.STRING(20)
-        },
         avatarURL: {
           type: Sequelize.STRING,
           allowNull: false
-        }
+        },
+        snsId: Sequelize.STRING(30),
+        selfIntro: Sequelize.STRING(100),
+        location: Sequelize.STRING(20)
       },
       {
         modelName: "user",
