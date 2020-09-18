@@ -4,10 +4,10 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const { sequelize } = require("./models");
-const session = require("express");
+const session = require("express-session");
 const passport = require("passport");
+const passportConfig = require("./passport");
 const cors = require("cors");
-
 require("dotenv").config();
 
 const authRouter = require("./routes/auth");
@@ -17,7 +17,7 @@ const app = express();
 
 // db 접속
 sequelize
-  .sync({ alter: true })
+  .sync(/* { alter: true } */)
   .then(() => {
     console.log("db connection success!");
   })
@@ -44,14 +44,16 @@ app.use(
   session({
     resave: false,
     saveUninitialized: false,
-    secret: process.env.COOKIE_SECRET,
-    cookie: {
-      // httpOnly: true // 자바스크립트로 장난치는 것 금지 (브라우저의 console창에서의 해킹 방지)
-      // secure: true // https에서만 사용 가능
-    }
+    secret: process.env.COOKIE_SECRET
+    // cookie: {
+    // httpOnly: true // 자바스크립트로 장난치는 것 금지 (브라우저의 console창에서의 해킹 방지)
+    // secure: true // https에서만 사용 가능
+    // }
   })
 );
 
+// 패스포트 적용
+passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
 

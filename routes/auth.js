@@ -5,6 +5,8 @@ const { Op } = require("sequelize");
 const { Tweet, Image, User, Hashtag } = require("../models");
 const bcrypt = require("bcrypt");
 const axios = require("axios");
+const { getUserWithFullAttributes } = require("../lib/utils");
+const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
 
 // 구글 로그인
 router.get("/login/google", (req, res, next) => {});
@@ -67,9 +69,32 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
-function getGravatarURL() {}
-
 // 로컬 로그인
-router.post("/login", (req, res, next) => {});
+router.post("/login", isNotLoggedIn, (req, res, next) => {
+  passport.authenticate("local", (serverError, user, errorInfo) => {
+    console.log("~~user", user);
+
+    if (serverError) {
+      console.error(serverError);
+      return next(serverError);
+    }
+
+    if (errorInfo) {
+      console.error(errorInfo);
+      return res.status(401).send(errorInfo.reason);
+    }
+
+    return req.login(user, async passportLoginError => {
+      if (passportLoginError) {
+        console.error(passportLoginError);
+        return next(passportLoginError);
+      }
+
+      const fullUser = await getUserWithFullAttributes(user.id);
+
+      return res.json(fullUser);
+    });
+  })(req, res, next);
+});
 
 module.exports = router;
