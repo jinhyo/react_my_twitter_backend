@@ -6,6 +6,7 @@ const logger = require("morgan");
 const { sequelize } = require("./models");
 const session = require("express");
 const passport = require("passport");
+const cors = require("cors");
 
 require("dotenv").config();
 
@@ -21,6 +22,15 @@ sequelize
     console.log("db connection success!");
   })
   .catch(err => console.error(err));
+
+app.use(
+  cors({
+    origin: "http://localhost:3003", // or true로 해도 됨
+    credentials: true // 브라우저와 백엔드 서버의 도메인이 다를 경우 쿠키 공유가 불가능
+    // 이를 해결하기 위해 credentials: true 입력(기본값은 false)
+    // 브라우저에서 사용하는 API에는 {withCredentials: true}를 넣어줘야 한다.
+  })
+);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -60,6 +70,7 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
+  console.error(err);
 
   // render the error page
   res.status(err.status || 500);
