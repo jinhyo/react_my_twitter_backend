@@ -13,7 +13,6 @@ router.get(
   "/login/google",
   isNotLoggedIn,
   passport.authenticate("google", {
-    // scope: ["https://www.googleapis.com/auth/plus.login", "email"]
     scope: ["profile", "email"]
   })
 );
@@ -23,15 +22,27 @@ router.get(
   passport.authenticate("google", {
     failureRedirect: "http://localhost:3003/login"
   }),
-  function(req, res) {
+  (req, res) => {
     res.redirect("http://localhost:3003");
   }
 );
 
 //// 페이스북 로그인
-router.get("/login/facebook", (req, res, next) => {});
+router.get(
+  "/login/facebook",
+  isNotLoggedIn,
+  passport.authenticate("facebook", { scope: "email" })
+);
 
-router.get("/facebook/callback", (req, res, next) => {});
+router.get(
+  "/facebook/callback",
+  passport.authenticate("facebook", {
+    failureRedirect: "http://localhost:3003/login"
+  }),
+  (req, res) => {
+    res.redirect("http://localhost:3003");
+  }
+);
 
 //// 네이버 로그인
 router.get("/login/naver", (req, res, next) => {});

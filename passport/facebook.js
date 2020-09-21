@@ -1,28 +1,31 @@
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 require("dotenv").config();
 const { User } = require("../models");
 const bcrypt = require("bcrypt");
 
 module.exports = passport => {
   passport.use(
-    new GoogleStrategy(
+    new FacebookStrategy(
       {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_SECRET,
-        callbackURL: "http://localhost:3001/auth/google/callback"
+        clientID: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_SECRET,
+        callbackURL: "http://localhost:3001/auth/facebook/callback",
+        profileFields: ["emails", "id", "displayName", "photos"]
       },
 
       async (accessToken, refreshToken, profile, done) => {
+        console.log("profile", profile);
+
         try {
           const exUser = await User.findOne({
-            where: { snsId: profile.id, loginType: "google" }
+            where: { snsId: profile.id, loginType: "facebook" }
           });
 
           if (exUser) {
             done(null, exUser.toJSON());
           } else {
-            // 구글 로그인용 닉네임 생성
-            let nickname = "g" + "_" + profile.displayName;
+            // 페북 로그인용 닉네임 생성
+            let nickname = "f" + "_" + profile.displayName;
 
             // 같은 닉네임이 있을 경우 변경
             const exNick = await User.findOne({
@@ -36,9 +39,9 @@ module.exports = passport => {
             const newUser = await User.create({
               email: profile.emails[0].value,
               snsId: profile.id,
-              password: "google",
+              password: "facebook",
               nickname,
-              loginType: "google",
+              loginType: "facebook",
               avatarURL: profile.photos[0].value
             });
             done(null, newUser.toJSON());
