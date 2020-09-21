@@ -25,7 +25,7 @@ sequelize
 
 app.use(
   cors({
-    origin: "http://localhost:3003", // or true로 해도 됨
+    origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
     credentials: true // 브라우저와 백엔드 서버의 도메인이 다를 경우 쿠키 공유가 불가능
     // 이를 해결하기 위해 credentials: true 입력(기본값은 false)
     // 브라우저에서 사용하는 API에는 {withCredentials: true}를 넣어줘야 한다.

@@ -8,22 +8,37 @@ const axios = require("axios");
 const { getUserWithFullAttributes } = require("../lib/utils");
 const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
 
-// 구글 로그인
-router.get("/login/google", (req, res, next) => {});
+//// 구글 로그인
+router.get(
+  "/login/google",
+  isNotLoggedIn,
+  passport.authenticate("google", {
+    // scope: ["https://www.googleapis.com/auth/plus.login", "email"]
+    scope: ["profile", "email"]
+  })
+);
 
-router.get("/google/callback", (req, res, next) => {});
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:3003/login"
+  }),
+  function(req, res) {
+    res.redirect("http://localhost:3003");
+  }
+);
 
-// 페이스북 로그인
+//// 페이스북 로그인
 router.get("/login/facebook", (req, res, next) => {});
 
 router.get("/facebook/callback", (req, res, next) => {});
 
-// 네이버 로그인
+//// 네이버 로그인
 router.get("/login/naver", (req, res, next) => {});
 
 router.get("/naver/callback", (req, res, next) => {});
 
-// 회원가입
+//// 회원가입
 router.post("/register", async (req, res, next) => {
   const { nickname, email, password, selfIntro, location } = req.body;
 
@@ -69,11 +84,9 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
-// 로컬 로그인
+//// 로컬 로그인
 router.post("/login", isNotLoggedIn, (req, res, next) => {
   passport.authenticate("local", (serverError, user, errorInfo) => {
-    console.log("~~user", user);
-
     if (serverError) {
       console.error(serverError);
       return next(serverError);
@@ -84,17 +97,43 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
       return res.status(401).send(errorInfo.reason);
     }
 
+    // 로그인 실행
     return req.login(user, async passportLoginError => {
       if (passportLoginError) {
         console.error(passportLoginError);
         return next(passportLoginError);
       }
-
       const fullUser = await getUserWithFullAttributes(user.id);
 
       return res.json(fullUser);
     });
   })(req, res, next);
+});
+
+// 로그아웃
+router.get("/logout", isLoggedIn, (req, res) => {
+  req.logout();
+  req.session.destroy();
+  res.end();
+});
+
+// 로그인 유저 정보를 보냄
+router.get("/login-user", async (req, res, next) => {
+  console.log("req.session", req.session);
+
+  if (req.user) {
+    try {
+      const fullUser = await getUserWithFullAttributes(req.user.id);
+      console.log("fullUser", fullUser.toJSON());
+
+      return res.json(fullUser);
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  } else {
+    return res.end();
+  }
 });
 
 module.exports = router;
