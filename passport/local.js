@@ -8,7 +8,10 @@ module.exports = passport => {
       { usernameField: "email", passwordField: "password" },
       async (email, password, done) => {
         try {
-          const loginUser = await User.findOne({ where: { email } });
+          const loginUser = await User.findOne({
+            where: { email, loginType: "local" }
+          });
+
           if (loginUser) {
             const passwordResult = await bcrypt.compare(
               password,

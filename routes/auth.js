@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const axios = require("axios");
 const { getUserWithFullAttributes } = require("../lib/utils");
 const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
+const { FRONTEND_URL } = require("../lib/constValue");
 
 //// 구글 로그인
 router.get(
@@ -20,10 +21,10 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3003/login"
+    failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect("http://localhost:3003");
+    res.redirect(`${FRONTEND_URL}`);
   }
 );
 
@@ -37,17 +38,31 @@ router.get(
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: "http://localhost:3003/login"
+    failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect("http://localhost:3003");
+    res.redirect(`${FRONTEND_URL}`);
   }
 );
 
 //// 네이버 로그인
-router.get("/login/naver", (req, res, next) => {});
+router.get(
+  "/login/naver",
+  isNotLoggedIn,
+  passport.authenticate("naver", {
+    failureRedirect: `${FRONTEND_URL}/login`
+  })
+);
 
-router.get("/naver/callback", (req, res, next) => {});
+router.get(
+  "/naver/callback",
+  passport.authenticate("naver", {
+    failureRedirect: `${FRONTEND_URL}/login`
+  }),
+  (req, res) => {
+    res.redirect(`${FRONTEND_URL}`);
+  }
+);
 
 //// 회원가입
 router.post("/register", async (req, res, next) => {
@@ -61,8 +76,12 @@ router.post("/register", async (req, res, next) => {
       return res.status(403).send("이미 사용중인 닉네임 입니다.");
     }
 
-    // 중복 이메일 방지
-    const isSameEmail = await User.findOne({ where: { email } });
+    // 중복 이메일('local') 방지
+    const isSameEmail = await User.findOne({
+      where: { email, loginType: "local" }
+    });
+    console.log("isSameEmail", isSameEmail);
+
     if (isSameEmail) {
       console.log("isSameEmail", isSameEmail);
       return res.status(403).send("이미 사용중인 이메일 입니다.");
