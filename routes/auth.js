@@ -24,7 +24,7 @@ router.get(
     failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect(`${FRONTEND_URL}`);
+    res.redirect(FRONTEND_URL);
   }
 );
 
@@ -41,7 +41,7 @@ router.get(
     failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect(`${FRONTEND_URL}`);
+    res.redirect(FRONTEND_URL);
   }
 );
 
@@ -60,12 +60,12 @@ router.get(
     failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect(`${FRONTEND_URL}`);
+    res.redirect(FRONTEND_URL);
   }
 );
 
 //// 회원가입
-router.post("/register", async (req, res, next) => {
+router.post("/register", isNotLoggedIn, async (req, res, next) => {
   const { nickname, email, password, selfIntro, location } = req.body;
 
   try {
@@ -80,10 +80,8 @@ router.post("/register", async (req, res, next) => {
     const isSameEmail = await User.findOne({
       where: { email, loginType: "local" }
     });
-    console.log("isSameEmail", isSameEmail);
 
     if (isSameEmail) {
-      console.log("isSameEmail", isSameEmail);
       return res.status(403).send("이미 사용중인 이메일 입니다.");
     }
 
@@ -98,7 +96,8 @@ router.post("/register", async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, 10);
     console.log("passwordHash", passwordHash);
 
-    await User.create({
+    // 유저 정보 생성
+    const user = await User.create({
       email,
       password: passwordHash,
       nickname,
@@ -107,7 +106,15 @@ router.post("/register", async (req, res, next) => {
       avatarURL
     });
 
-    res.status(201).end();
+    // 자동 로그인
+    req.login(user, async passportLoginError => {
+      if (passportLoginError) {
+        console.error(passportLoginError);
+        return next(passportLoginError);
+      }
+
+      return res.status(201).end();
+    });
   } catch (error) {
     console.error(error);
     next(error);
