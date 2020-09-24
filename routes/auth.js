@@ -173,4 +173,30 @@ router.get("/login-user", async (req, res, next) => {
   }
 });
 
+// 중복 닉네임 검사
+router.get("/nicknames/:nickname", async (req, res, next) => {
+  const user = await User.findOne({ where: { nickname: req.params.nickname } });
+  console.log("/users/:nickname");
+
+  if (user) {
+    res.json({ isAvailable: false });
+  } else {
+    res.json({ isAvailable: true });
+  }
+});
+
+// 중복 이메일 검사
+router.get("/emails/:email", async (req, res, next) => {
+  const user = await User.findOne({ where: { email: req.params.email } });
+  console.log("/users/:email");
+
+  if (user) {
+    res.json({ isAvailable: false });
+  } else {
+    res.json({ isAvailable: true });
+  }
+});
+
+router.get("/", async (req, res, next) => {});
+
 module.exports = router;
