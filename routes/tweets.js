@@ -1,10 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const { Tweet, Image, User, Hashtag } = require("../models");
+const multer = require("multer");
+const path = require("path");
+const { getTweetWithFullAttributes } = require("../lib/utils");
+const { BACKEND_URL } = require("../lib/constValue");
+
+// multer 세팅
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const basename = path.basename(file.originalname, ext);
+
+    cb(null, basename + "_" + Date.now() + ext);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1204 * 1204 }
+});
 
 // 트윗 생성
-router.post("/", async (req, res, next) => {
-  console.log("contents: ", req.body.contents, "images: ", req.body.images);
+router.post("/", upload.array("images", 5), async (req, res, next) => {
+  // 트윗 생성
   const tweet = await Tweet.create({
     contents: req.body.contents,
     userId: /* req.user.id */ 1
@@ -22,13 +44,25 @@ router.post("/", async (req, res, next) => {
         });
       })
     ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, true]]
-    console.log("hashtagResults", hashtagResults);
     await tweet.addHashtags(hashtagResults.map(result => result[0]));
   }
 
-  console.log("tweet", tweet.toJSON());
+  // 이미지 파일이 있는 경우
+  if (req.files.length > 0) {
+    req.files.forEach(async file => {
+      await Image.create({
+        src: `${BACKEND_URL}/images/${file.filename}`,
+        tweetId: tweet.id
+      });
+    });
+    await tweet.update({ hasMedia: true });
+  }
 
-  res.status(201).json(tweet);
+  const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
+
+  console.log("tweetWithOthers", tweetWithOthers.toJSON());
+
+  res.status(201).json(tweetWithOthers);
 });
 
 module.exports = router;
