@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const { Op } = require("sequelize");
 const { Tweet, Image, User, Hashtag } = require("../models");
 const bcrypt = require("bcrypt");
 const axios = require("axios");
@@ -72,7 +71,6 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
     // 중복 닉네임 방지
     const isSameNickname = await User.findOne({ where: { nickname } });
     if (isSameNickname) {
-      console.log("isSameNickname", isSameNickname);
       return res.status(403).send("이미 사용중인 닉네임 입니다.");
     }
 
@@ -94,7 +92,6 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
 
     // 암호 해쉬화
     const passwordHash = await bcrypt.hash(password, 10);
-    console.log("passwordHash", passwordHash);
 
     // 유저 정보 생성
     const user = await User.create({
@@ -161,7 +158,7 @@ router.get("/login-user", async (req, res, next) => {
   if (req.user) {
     try {
       const fullUser = await getUserWithFullAttributes(req.user.id);
-      console.log("fullUser", fullUser.toJSON());
+      // console.log("fullUser", fullUser.toJSON());
 
       return res.json(fullUser);
     } catch (error) {

@@ -27,7 +27,6 @@ module.exports = class Post extends Model {
 
   static associate(db) {
     db.Tweet.belongsTo(db.User);
-    db.Tweet.belongsTo(db.Tweet);
     db.Tweet.hasMany(db.Tweet, {
       as: "retweets",
       foreignKey: "retweetOriginId"

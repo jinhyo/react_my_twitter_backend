@@ -12,12 +12,13 @@ require("dotenv").config();
 
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
+const tweetRouter = require("./routes/tweets");
 
 const app = express();
 
 // db 접속
 sequelize
-  .sync(/* { alter: true } */)
+  .sync(/* { force: true } */)
   .then(() => {
     console.log("db connection success!");
   })
@@ -61,6 +62,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
+app.use("/tweets", tweetRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
