@@ -3,10 +3,14 @@ const router = express.Router();
 const { Tweet, Image, User, Hashtag } = require("../models");
 const multer = require("multer");
 const path = require("path");
-const { getTweetWithFullAttributes } = require("../lib/utils");
+const {
+  getTweetWithFullAttributes,
+  getTweetsWithFullAttributes
+} = require("../lib/utils");
 const { BACKEND_URL } = require("../lib/constValue");
+const { Op } = require("sequelize");
 
-// multer 세팅
+//// multer 세팅
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "images");
@@ -24,7 +28,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1204 * 1204 }
 });
 
-// 트윗 생성
+//// 트윗 추가
 router.post("/", upload.array("images", 5), async (req, res, next) => {
   // 트윗 생성
   const tweet = await Tweet.create({
@@ -64,5 +68,22 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
 
   res.status(201).json(tweetWithOthers);
 });
+
+//// 트윗들 전송
+router.get("/", async (req, res, next) => {
+  const lastId = req.query.lastId;
+  const limit = parseInt(req.query.limit);
+  const where = {};
+
+  if (lastId) {
+    where.id = { [Op.lt]: lastId };
+  }
+
+  const tweetsWithOthers = await getTweetsWithFullAttributes(where, limit);
+
+  res.status(200).json(tweetsWithOthers);
+});
+
+router.get("/", async (req, res, next) => {});
 
 module.exports = router;

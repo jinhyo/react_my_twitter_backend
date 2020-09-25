@@ -144,14 +144,14 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
   })(req, res, next);
 });
 
-// 로그아웃
+//// 로그아웃
 router.get("/logout", isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();
   res.end();
 });
 
-// 로그인 유저 정보를 보냄
+//// 로그인 유저 정보 전송
 router.get("/login-user", async (req, res, next) => {
   console.log("req.session", req.session);
 
@@ -170,7 +170,7 @@ router.get("/login-user", async (req, res, next) => {
   }
 });
 
-// 중복 닉네임 검사
+//// 중복 닉네임 검사
 router.get("/nicknames/:nickname", async (req, res, next) => {
   const user = await User.findOne({ where: { nickname: req.params.nickname } });
   console.log("/users/:nickname");
@@ -182,7 +182,7 @@ router.get("/nicknames/:nickname", async (req, res, next) => {
   }
 });
 
-// 중복 이메일 검사
+//// 중복 이메일 검사
 router.get("/emails/:email", async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.params.email } });
   console.log("/users/:email");
@@ -193,7 +193,5 @@ router.get("/emails/:email", async (req, res, next) => {
     res.json({ isAvailable: true });
   }
 });
-
-router.get("/", async (req, res, next) => {});
 
 module.exports = router;
