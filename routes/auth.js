@@ -158,7 +158,6 @@ router.get("/login-user", async (req, res, next) => {
   if (req.user) {
     try {
       const fullUser = await getUserWithFullAttributes(req.user.id);
-      // console.log("fullUser", fullUser.toJSON());
 
       return res.json(fullUser);
     } catch (error) {

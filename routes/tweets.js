@@ -80,10 +80,41 @@ router.get("/", async (req, res, next) => {
   }
 
   const tweetsWithOthers = await getTweetsWithFullAttributes(where, limit);
-
   res.status(200).json(tweetsWithOthers);
 });
 
-router.get("/", async (req, res, next) => {});
+//// 트윗 좋아요 표시
+router.post("/:tweetId/like", async (req, res, next) => {
+  const { tweetId } = req.params;
+  try {
+    const tweet = await Tweet.findOne({ where: { id: tweetId } });
+    if (!tweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+    await tweet.addLikers(req.user.id);
+
+    res.status(201).end();
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 트윗 좋아요 삭제
+router.delete("/:tweetId/like", async (req, res, next) => {
+  const { tweetId } = req.params;
+  try {
+    const tweet = await Tweet.findOne({ where: { id: tweetId } });
+    if (!tweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+    await tweet.removeLikers(req.user.id);
+
+    res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
 
 module.exports = router;
