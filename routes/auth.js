@@ -7,6 +7,7 @@ const axios = require("axios");
 const { getUserWithFullAttributes } = require("../lib/utils");
 const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
 const { FRONTEND_URL } = require("../lib/constValue");
+const md5 = require("md5");
 
 //// 구글 로그인
 router.get(
@@ -86,7 +87,7 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
     // 초기 아바타 생성
     const emailHash = await bcrypt.hash(email, 10);
     const response = await axios.get(
-      `http://gravatar.com/avatar/${emailHash}?d=identicon`
+      `http://gravatar.com/avatar/${md5(email)}?d=identicon`
     );
     const avatarURL = response.config.url;
 
