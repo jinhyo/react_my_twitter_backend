@@ -85,7 +85,6 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
     }
 
     // 초기 아바타 생성
-    const emailHash = await bcrypt.hash(email, 10);
     const response = await axios.get(
       `http://gravatar.com/avatar/${md5(email)}?d=identicon`
     );

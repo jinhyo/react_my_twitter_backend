@@ -33,7 +33,7 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
   // 트윗 생성
   const tweet = await Tweet.create({
     contents: req.body.contents,
-    userId: /* req.user.id */ 1
+    userId: req.user.id
   });
 
   const hashtags = req.body.contents.match(/#[^\s#]+/g);
@@ -109,6 +109,23 @@ router.delete("/:tweetId/like", async (req, res, next) => {
       return res.status(404).send("해당 트윗이 존재하지 않습니다.");
     }
     await tweet.removeLikers(req.user.id);
+
+    res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 트윗 삭제
+router.delete("/:tweetId", async (req, res, next) => {
+  const { tweetId } = req.params;
+  try {
+    const tweet = await Tweet.findOne({ where: { id: tweetId } });
+    if (!tweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+    await Tweet.destroy({ where: { id: tweetId } });
 
     res.status(204).end();
   } catch (error) {
