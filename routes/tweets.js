@@ -64,8 +64,6 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
 
   const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
 
-  console.log("tweetWithOthers", tweetWithOthers.toJSON());
-
   res.status(201).json(tweetWithOthers);
 });
 
@@ -110,7 +108,7 @@ router.delete("/:tweetId/like", async (req, res, next) => {
     }
     await tweet.removeLikers(req.user.id);
 
-    res.status(204).end();
+    res.end();
   } catch (error) {
     console.error(error);
     next(error);
@@ -127,7 +125,78 @@ router.delete("/:tweetId", async (req, res, next) => {
     }
     await Tweet.destroy({ where: { id: tweetId } });
 
-    res.status(204).end();
+    res.end();
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 리트윗
+router.post("/:tweetId/retweet", async (req, res, next) => {
+  const retweetOriginId = parseInt(req.params.tweetId);
+
+  try {
+    const retweetOrigin = await Tweet.findOne({
+      where: { id: retweetOriginId }
+    });
+    if (!retweetOrigin) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+
+    // 트윗 생성
+    const newTweet = await Tweet.create({
+      contents: "",
+      userId: req.user.id,
+      retweetOriginId
+    });
+
+    // junction table(userretweets)에 추가
+    await retweetOrigin.addWriter(req.user.id);
+
+    // 리트윗 원본의 리트윗 카운트 1증가
+    await retweetOrigin.increment("retweetedCount");
+
+    const tweetWithOthers = await getTweetWithFullAttributes(newTweet.id);
+
+    res.status(201).json(tweetWithOthers);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 리트윗 취소
+router.delete("/:tweetId/retweet", async (req, res, next) => {
+  const retweetOriginId = parseInt(req.params.tweetId);
+
+  try {
+    const retweetOrigin = await Tweet.findOne({
+      where: { id: retweetOriginId }
+    });
+    const tweetToDelete = await Tweet.findOne({
+      where: {
+        retweetOriginId,
+        isQuoted: false
+      }
+    });
+
+    if (!retweetOrigin || !tweetToDelete) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+
+    const deletedTweetId = tweetToDelete.id;
+
+    // 리트윗한 트윗 삭제
+    await tweetToDelete.destroy();
+
+    // junction table(userretweets)에서 제거
+    await retweetOrigin.removeWriter(req.user.id);
+
+    // 리트윗 원본의 리트윗 카운트 1감소
+    await retweetOrigin.decrement("retweetedCount");
+
+    res.json({ deletedTweetId });
   } catch (error) {
     console.error(error);
     next(error);

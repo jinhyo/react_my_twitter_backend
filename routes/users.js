@@ -29,7 +29,7 @@ router.delete("/:userId/follow", async (req, res, next) => {
     }
     await targetUser.removeFollower(req.user.id);
 
-    res.status(204).end();
+    res.end();
   } catch (error) {
     console.error(error);
     next(error);

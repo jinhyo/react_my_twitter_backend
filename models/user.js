@@ -55,5 +55,10 @@ module.exports = class User extends Model {
       as: "followings",
       foreignKey: "followerId"
     });
+    db.User.belongsToMany(db.Tweet, {
+      // 내가 리트윗한 리스트
+      through: "userRetweets",
+      as: "retweets"
+    });
   }
 };

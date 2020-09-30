@@ -12,6 +12,16 @@ module.exports = class Post extends Model {
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: false
+        },
+        isQuoted: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false
+        },
+        retweetedCount: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0
         }
       },
       {
@@ -28,11 +38,15 @@ module.exports = class Post extends Model {
   static associate(db) {
     db.Tweet.belongsTo(db.User);
     db.Tweet.belongsTo(db.Tweet, {
-      as: "retweets",
+      as: "retweetOrigin",
       foreignKey: "retweetOriginId"
     });
     db.Tweet.belongsToMany(db.User, { through: "likes", as: "likers" });
     db.Tweet.belongsToMany(db.Hashtag, { through: "tweetHashtags" });
     db.Tweet.hasMany(db.Image);
+    db.Tweet.belongsToMany(db.User, {
+      through: "userRetweets",
+      as: "writers" // 해당 원본 트윗을 리트윗한 사람
+    });
   }
 };
