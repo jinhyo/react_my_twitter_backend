@@ -125,6 +125,15 @@ router.delete("/:tweetId", async (req, res, next) => {
     }
     await Tweet.destroy({ where: { id: tweetId } });
 
+    // 리트윗된 원본 트윗을 삭제하는 경우 해당 트윗을 인용이 아닌 리트윗하는 트윗들도 삭제한다.
+    await tweet.setChoosers([]);
+    const retweets = await Tweet.findAll({
+      where: { retweetOriginId: tweetId }
+    });
+    retweets.forEach(async retweet => {
+      await retweet.destroy();
+    });
+
     res.end();
   } catch (error) {
     console.error(error);
@@ -152,7 +161,7 @@ router.post("/:tweetId/retweet", async (req, res, next) => {
     });
 
     // junction table(userretweets)에 추가
-    await retweetOrigin.addWriter(req.user.id);
+    await retweetOrigin.addChooser(req.user.id);
 
     // 리트윗 원본의 리트윗 카운트 1증가
     await retweetOrigin.increment("retweetedCount");
@@ -177,7 +186,6 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
     const tweetToDelete = await Tweet.findOne({
       where: {
         retweetOriginId,
-        isQuoted: false,
         userId: req.user.id
       }
     });
@@ -192,7 +200,7 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
     await tweetToDelete.destroy();
 
     // junction table(userretweets)에서 제거
-    await retweetOrigin.removeWriter(req.user.id);
+    await retweetOrigin.removeChooser(req.user.id);
 
     // 리트윗 원본의 리트윗 카운트 1감소
     await retweetOrigin.decrement("retweetedCount");

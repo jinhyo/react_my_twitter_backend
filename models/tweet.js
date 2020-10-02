@@ -13,11 +13,6 @@ module.exports = class Post extends Model {
           allowNull: false,
           defaultValue: false
         },
-        isQuoted: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
-          defaultValue: false
-        },
         retweetedCount: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -41,11 +36,19 @@ module.exports = class Post extends Model {
       as: "retweetOrigin",
       foreignKey: "retweetOriginId"
     });
+    db.Tweet.belongsTo(db.Tweet, {
+      as: "quotedOrigin",
+      foreignKey: "quotedOrginId"
+    });
     db.Tweet.belongsToMany(db.User, { through: "likes", as: "likers" });
     db.Tweet.belongsToMany(db.Hashtag, { through: "tweetHashtags" });
     db.Tweet.hasMany(db.Image);
     db.Tweet.belongsToMany(db.User, {
       through: "userRetweets",
+      as: "choosers" // 해당 원본 트윗을 리트윗한 사람
+    });
+    db.Tweet.belongsToMany(db.User, {
+      through: "userQuotedTweets",
       as: "writers" // 해당 원본 트윗을 리트윗한 사람
     });
   }

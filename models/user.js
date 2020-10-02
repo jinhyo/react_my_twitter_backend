@@ -60,5 +60,10 @@ module.exports = class User extends Model {
       through: "userRetweets",
       as: "retweets"
     });
+    db.User.belongsToMany(db.Tweet, {
+      // 내가 리트윗한 리스트
+      through: "userQuotedTweets",
+      as: "quotedTweets"
+    });
   }
 };
