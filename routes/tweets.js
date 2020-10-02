@@ -177,7 +177,8 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
     const tweetToDelete = await Tweet.findOne({
       where: {
         retweetOriginId,
-        isQuoted: false
+        isQuoted: false,
+        userId: req.user.id
       }
     });
 
