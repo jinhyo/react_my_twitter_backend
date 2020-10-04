@@ -38,7 +38,7 @@ module.exports = class Post extends Model {
     });
     db.Tweet.belongsTo(db.Tweet, {
       as: "quotedOrigin",
-      foreignKey: "quotedOrginId"
+      foreignKey: "quotedOriginId"
     });
     db.Tweet.belongsToMany(db.User, { through: "likes", as: "likers" });
     db.Tweet.belongsToMany(db.Hashtag, { through: "tweetHashtags" });

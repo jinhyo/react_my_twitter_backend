@@ -39,8 +39,6 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
   const hashtags = req.body.contents.match(/#[^\s#]+/g);
   // 해쉬태그가 있는 경우
   if (hashtags) {
-    console.log("hashtags", hashtags);
-
     const hashtagResults = await Promise.all(
       hashtags.map(hashtag => {
         return Hashtag.findOrCreate({
@@ -123,16 +121,35 @@ router.delete("/:tweetId", async (req, res, next) => {
     if (!tweet) {
       return res.status(404).send("해당 트윗이 존재하지 않습니다.");
     }
-    await Tweet.destroy({ where: { id: tweetId } });
 
-    // 리트윗된 원본 트윗을 삭제하는 경우 해당 트윗을 인용이 아닌 리트윗하는 트윗들도 삭제한다.
-    await tweet.setChoosers([]);
+    // 리트윗된 원본 트윗을 삭제하는 경우
     const retweets = await Tweet.findAll({
       where: { retweetOriginId: tweetId }
     });
-    retweets.forEach(async retweet => {
-      await retweet.destroy();
-    });
+    if (retweets) {
+      // 해당 트윗을 리트윗하는 트윗들도 삭제한다.
+      await tweet.setChoosers([]);
+      retweets.forEach(async retweet => {
+        await retweet.destroy();
+      });
+    }
+
+    console.log("tweet.toJSON()", tweet.toJSON());
+    // 다른 트윗을 인용한 트윗인 경우
+    if (tweet.quotedOriginId) {
+      const retweetOrigin = await Tweet.findOne({
+        where: { id: tweet.quotedOriginId }
+      });
+
+      // - junction table(userquotedtweets)에서 삭제
+      await retweetOrigin.removeWriter(req.user.id);
+
+      // 인용된 트윗의 리트윗 카운트 -1
+      await retweetOrigin.decrement("retweetedCount");
+    }
+
+    // 트윗 삭제
+    await Tweet.destroy({ where: { id: tweetId } });
 
     res.end();
   } catch (error) {
@@ -211,5 +228,67 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
     next(error);
   }
 });
+
+//// 트윗 인용하기
+router.post(
+  "/:tweetId/quotation",
+  upload.array("images", 5),
+  async (req, res, next) => {
+    const quotedOriginId = parseInt(req.params.tweetId);
+
+    try {
+      const quotedOrigin = await Tweet.findOne({
+        where: { id: quotedOriginId }
+      });
+      if (!quotedOrigin) {
+        return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+      }
+
+      // 트윗 생성
+      const tweet = await Tweet.create({
+        contents: req.body.contents,
+        userId: req.user.id,
+        quotedOriginId
+      });
+
+      const hashtags = req.body.contents.match(/#[^\s#]+/g);
+      // 해쉬태그가 있는 경우
+      if (hashtags) {
+        const hashtagResults = await Promise.all(
+          hashtags.map(hashtag => {
+            return Hashtag.findOrCreate({
+              where: { tag: hashtag.slice(1).toLowerCase() }
+            });
+          })
+        );
+        await tweet.addHashtags(hashtagResults.map(result => result[0]));
+      }
+
+      // 이미지 파일이 있는 경우
+      if (req.files.length > 0) {
+        req.files.forEach(async file => {
+          await Image.create({
+            src: `${BACKEND_URL}/images/${file.filename}`,
+            tweetId: tweet.id
+          });
+        });
+        await tweet.update({ hasMedia: true });
+      }
+
+      // junction table(userquotedtweets)에 추가
+      await quotedOrigin.addWriter(req.user.id);
+
+      // 리트윗 원본의 리트윗 카운트 1증가
+      await quotedOrigin.increment("retweetedCount");
+
+      const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
+
+      res.status(201).json(tweetWithOthers);
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  }
+);
 
 module.exports = router;
