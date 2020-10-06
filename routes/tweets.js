@@ -7,7 +7,8 @@ const {
   getTweetWithFullAttributes,
   getTweetsWithFullAttributes,
   getTweetStatus,
-  getQuotationsWithFullAttributes
+  getQuotationsWithFullAttributes,
+  getCommentsWithFullAttributes
 } = require("../lib/utils");
 const { BACKEND_URL } = require("../lib/constValue");
 const { Op } = require("sequelize");
@@ -382,6 +383,25 @@ router.get("/:tweetId/quotation", async (req, res, next) => {
     }
 
     const tweets = await getQuotationsWithFullAttributes(tweetId);
+
+    res.json(tweets);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 트윗의 댓글 트윗들 반환
+router.get("/:tweetId/comment", async (req, res, next) => {
+  const tweetId = parseInt(req.params.tweetId);
+
+  try {
+    const targetTweet = await Tweet.findOne({ where: { id: tweetId } });
+    if (!targetTweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+
+    const tweets = await getCommentsWithFullAttributes(tweetId);
 
     res.json(tweets);
   } catch (error) {
