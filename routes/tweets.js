@@ -5,7 +5,8 @@ const multer = require("multer");
 const path = require("path");
 const {
   getTweetWithFullAttributes,
-  getTweetsWithFullAttributes
+  getTweetsWithFullAttributes,
+  getTweetStatus
 } = require("../lib/utils");
 const { BACKEND_URL } = require("../lib/constValue");
 const { Op } = require("sequelize");
@@ -348,5 +349,25 @@ router.post(
     }
   }
 );
+
+//// 특정 트윗 정보 반환
+router.get("/:tweetId", async (req, res, next) => {
+  const tweetId = parseInt(req.params.tweetId);
+
+  try {
+    const tweet = await Tweet.findOne({
+      where: { id: tweetId }
+    });
+    if (!tweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+
+    const tweetsWithOthers = await getTweetStatus(tweetId);
+    res.status(200).json(tweetsWithOthers);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
 
 module.exports = router;

@@ -36,11 +36,18 @@ module.exports = class Post extends Model {
       as: "retweetOrigin",
       foreignKey: "retweetOriginId"
     });
+    db.Tweet.hasMany(db.Tweet, {
+      as: "retweets",
+      foreignKey: "retweetOriginId"
+    });
     db.Tweet.belongsTo(db.Tweet, {
       as: "quotedOrigin",
       foreignKey: "quotedOriginId"
     });
-
+    db.Tweet.hasMany(db.Tweet, {
+      as: "quotations",
+      foreignKey: "quotedOriginId"
+    });
     db.Tweet.belongsTo(db.Tweet, {
       as: "commentedOrigin",
       foreignKey: "commentedOriginId"

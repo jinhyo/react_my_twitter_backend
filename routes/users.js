@@ -36,4 +36,24 @@ router.delete("/:userId/follow", async (req, res, next) => {
   }
 });
 
+router.get("/retweet/:tweetId", async (req, res, next) => {
+  const tweetId = parseInt(req.params.tweetId);
+
+  try {
+    const targetTweet = await Tweet.findOne({ where: { id: tweetId } });
+    if (!targetTweet) {
+      return res.status(404).send("해당 트윗이 존재하지 않습니다.");
+    }
+
+    const users = await targetTweet.getChoosers({
+      attributes: ["id", "nickname", "selfIntro", "avatarURL"]
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 module.exports = router;
