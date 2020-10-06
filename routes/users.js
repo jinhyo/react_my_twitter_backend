@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Tweet, Image, User, Hashtag } = require("../models");
+const { getUserWithFullAttributes } = require("../lib/utils");
 
 //// 팔로우
 router.post("/:userId/follow", async (req, res, next) => {
@@ -75,6 +76,23 @@ router.get("/like/:tweetId", async (req, res, next) => {
     });
 
     res.json(users);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저 정보 전송
+router.get("/:userId", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+  try {
+    const user = await getUserWithFullAttributes(userId);
+
+    if (!user) {
+      return res.status(404).send("해당 유저가 존재하지 않습니다.");
+    }
+
+    res.json(user);
   } catch (error) {
     console.error(error);
     next(error);
