@@ -70,9 +70,7 @@ router.get("/like/:tweetId", async (req, res, next) => {
 
     const users = await targetTweet.getLikers({
       attributes: ["id", "nickname", "selfIntro", "avatarURL"],
-      through: {
-        attributes: []
-      }
+      joinTableAttributes: []
     });
 
     res.json(users);
@@ -93,6 +91,44 @@ router.get("/:userId", async (req, res, next) => {
     }
 
     res.json(user);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저의 팔로잉들 반환
+router.get("/:userId/followings", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const user = await User.findOne({ where: { id: userId } });
+
+    const followings = await user.getFollowings({
+      attributes: ["id", "nickname", "selfIntro", "avatarURL"],
+      joinTableAttributes: []
+    });
+
+    res.json(followings);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저의 팔로워들 반환
+router.get("/:userId/followers", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const user = await User.findOne({ where: { id: userId } });
+
+    const followers = await user.getFollowers({
+      attributes: ["id", "nickname", "selfIntro", "avatarURL"],
+      joinTableAttributes: []
+    });
+
+    res.json(followers);
   } catch (error) {
     console.error(error);
     next(error);
