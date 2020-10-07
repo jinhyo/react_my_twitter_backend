@@ -72,7 +72,7 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
 router.get("/", async (req, res, next) => {
   const lastId = req.query.lastId;
   const limit = parseInt(req.query.limit);
-  const where = {};
+  const where = { commentedOriginId: null };
 
   if (lastId) {
     where.id = { [Op.lt]: lastId };
