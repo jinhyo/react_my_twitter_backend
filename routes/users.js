@@ -2,7 +2,12 @@ const express = require("express");
 const router = express.Router();
 const { Tweet, Image, User, Hashtag } = require("../models");
 const { getUserWithFullAttributes } = require("../lib/utils");
-
+const {
+  getSpecificUsersTweets,
+  getSpecificUsersComments,
+  getSpecificUsersMedias,
+  getSpecificUsersFavorits
+} = require("../lib/utils");
 //// 팔로우
 router.post("/:userId/follow", async (req, res, next) => {
   const { userId } = req.params;
@@ -129,6 +134,62 @@ router.get("/:userId/followers", async (req, res, next) => {
     });
 
     res.json(followers);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저의 트윗들 반환 (댓글 제외)
+router.get("/:userId/tweets", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    tweets = await getSpecificUsersTweets(userId);
+
+    res.json(tweets);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저의 댓글 트윗들 반환
+router.get("/:userId/comments", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    comments = await getSpecificUsersComments(userId);
+
+    res.json(comments);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저의 미디어 트윗들 반환
+router.get("/:userId/medias", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    mediaTweets = await getSpecificUsersMedias(userId);
+
+    res.json(mediaTweets);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+//// 특정 유저가 좋아요 누른 트윗들 반환
+router.get("/:userId/favorites", async (req, res, next) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const tweets = await getSpecificUsersFavorits(userId);
+
+    res.json(tweets);
   } catch (error) {
     console.error(error);
     next(error);
