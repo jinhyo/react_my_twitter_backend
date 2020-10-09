@@ -365,6 +365,7 @@ router.get("/:tweetId", async (req, res, next) => {
     }
 
     const tweetsWithOthers = await getTweetStatus(tweetId);
+
     res.status(200).json(tweetsWithOthers);
   } catch (error) {
     console.error(error);
