@@ -196,4 +196,28 @@ router.get("/:userId/favorites", async (req, res, next) => {
   }
 });
 
+//// 프로필 수정
+router.patch("/profile", async (req, res, next) => {
+  const { nickname, selfIntro, location } = req.body;
+
+  try {
+    // 중복 닉네임 방지
+    const currentUser = await User.findByPk(req.user.id);
+    const isSameNickname = await User.findOne({ where: { nickname } });
+    if (isSameNickname && req.user.nickname !== currentUser.nickname) {
+      return res.status(403).send("이미 사용중인 닉네임 입니다.");
+    }
+
+    await User.update(
+      { nickname, selfIntro, location },
+      { where: { id: req.user.id } }
+    );
+
+    res.end();
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 module.exports = router;
