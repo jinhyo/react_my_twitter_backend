@@ -13,6 +13,7 @@ require("dotenv").config();
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
 const tweetRouter = require("./routes/tweets");
+const hashtagRouter = require("./routes/hashtags");
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/tweets", tweetRouter);
+app.use("/hashtags", hashtagRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
