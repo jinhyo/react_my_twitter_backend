@@ -66,7 +66,7 @@ module.exports = class Post extends Model {
     });
     db.Tweet.belongsToMany(db.User, {
       through: "userQuotedTweets",
-      as: "writers" // 해당 원본 트윗을 리트윗한 사람
+      as: "writers" // 해당 원본 트윗을 인용한 사람
     });
   }
 };

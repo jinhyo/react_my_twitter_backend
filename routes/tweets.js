@@ -78,8 +78,14 @@ router.get("/", async (req, res, next) => {
     where.id = { [Op.lt]: lastId };
   }
 
-  const tweetsWithOthers = await getTweetsWithFullAttributes(where, limit);
-  res.status(200).json(tweetsWithOthers);
+  try {
+    const tweetsWithOthers = await getTweetsWithFullAttributes(where, limit);
+
+    res.status(200).json(tweetsWithOthers);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
 });
 
 //// 트윗 좋아요 표시
@@ -143,7 +149,8 @@ router.delete("/:tweetId", async (req, res, next) => {
     // 다른 트윗을 인용한 트윗인 경우
     if (tweet.quotedOriginId) {
       const quotedOrigin = await Tweet.findOne({
-        where: { id: tweet.quotedOriginId }
+        where: { id: tweet.quotedOriginId },
+        paranoid: false
       });
 
       // - junction table(userquotedtweets)에서 삭제
