@@ -14,6 +14,7 @@ const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
 const tweetRouter = require("./routes/tweets");
 const hashtagRouter = require("./routes/hashtags");
+const searchRouter = require("./routes/search");
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/tweets", tweetRouter);
 app.use("/hashtags", hashtagRouter);
+app.use("/search", searchRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
