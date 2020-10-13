@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Tweet, Image, User, Hashtag } = require("../models");
-const multer = require("multer");
-const path = require("path");
+const { upload } = require("../lib/multer");
 const {
   getTweetWithFullAttributes,
   getTweetsWithFullAttributes,
@@ -13,25 +12,7 @@ const {
 const { BACKEND_URL } = require("../lib/constValue");
 const { Op } = require("sequelize");
 
-//// multer 세팅
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "images");
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const basename = path.basename(file.originalname, ext);
-
-    cb(null, basename + "_" + Date.now() + ext);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1204 * 1204 }
-});
-
-//// 트윗 추가
+/*  트윗 추가 */
 router.post("/", upload.array("images", 5), async (req, res, next) => {
   // 트윗 생성
   const tweet = await Tweet.create({
@@ -68,7 +49,7 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
   res.status(201).json(tweetWithOthers);
 });
 
-//// 트윗들 전송
+/*  트윗들 반환 */
 router.get("/", async (req, res, next) => {
   const lastId = req.query.lastId;
   const limit = parseInt(req.query.limit);
@@ -88,7 +69,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-//// 트윗 좋아요 표시
+/*  트윗 좋아요 표시 */
 router.post("/:tweetId/like", async (req, res, next) => {
   const { tweetId } = req.params;
   try {
@@ -105,7 +86,7 @@ router.post("/:tweetId/like", async (req, res, next) => {
   }
 });
 
-//// 트윗 좋아요 삭제
+/*  트윗 좋아요 삭제 */
 router.delete("/:tweetId/like", async (req, res, next) => {
   const { tweetId } = req.params;
   try {
@@ -122,7 +103,7 @@ router.delete("/:tweetId/like", async (req, res, next) => {
   }
 });
 
-//// 트윗 & 다른 트윗을 인용한 트윗 & 리트윗된 원본 트윗 삭제
+/*  트윗 & 다른 트윗을 인용한 트윗 & 리트윗된 원본 트윗 삭제 */
 router.delete("/:tweetId", async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
   try {
@@ -170,7 +151,7 @@ router.delete("/:tweetId", async (req, res, next) => {
   }
 });
 
-//// 리트윗
+/*  리트윗 */
 router.post("/:tweetId/retweet", async (req, res, next) => {
   const retweetOriginId = parseInt(req.params.tweetId);
 
@@ -204,7 +185,7 @@ router.post("/:tweetId/retweet", async (req, res, next) => {
   }
 });
 
-//// 리트윗 취소
+/*  리트윗 취소 */
 router.delete("/:tweetId/retweet", async (req, res, next) => {
   const retweetOriginId = parseInt(req.params.tweetId);
 
@@ -241,7 +222,7 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
   }
 });
 
-//// 트윗 인용하기
+/*  트윗 인용하기 */
 router.post(
   "/:tweetId/quotation",
   upload.array("images", 5),
@@ -303,7 +284,7 @@ router.post(
   }
 );
 
-//// 트윗 댓글 추가
+/*  트윗 댓글 추가 */
 router.post(
   "/:tweetId/comment",
   upload.array("images", 5),
@@ -359,7 +340,7 @@ router.post(
   }
 );
 
-//// 특정 트윗 정보 반환
+/*  특정 트윗 정보 반환 */
 router.get("/:tweetId", async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
 
@@ -380,7 +361,7 @@ router.get("/:tweetId", async (req, res, next) => {
   }
 });
 
-//// 특정 트윗을 인용한 트윗들 반환
+/*  특정 트윗을 인용한 트윗들 반환 */
 router.get("/:tweetId/quotation", async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
 
@@ -399,7 +380,7 @@ router.get("/:tweetId/quotation", async (req, res, next) => {
   }
 });
 
-//// 특정 트윗의 댓글 트윗들 반환
+/*  특정 트윗의 댓글 트윗들 반환 */
 router.get("/:tweetId/comment", async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
 
