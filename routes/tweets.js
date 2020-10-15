@@ -29,8 +29,19 @@ router.post("/", upload.array("images", 5), async (req, res, next) => {
           where: { tag: hashtag.slice(1).toLowerCase() }
         });
       })
-    ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, true]]
+    ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, false]]
     await tweet.addHashtags(hashtagResults.map(result => result[0]));
+
+    // 기존에 있는 해시태그면 카운트 증가
+    hashtagResults.forEach(async result => {
+      const hashtag = result[0];
+      const newlyCreated = result[1];
+
+      if (!newlyCreated) {
+        hashtag.count++;
+        await hashtag.save();
+      }
+    });
   }
 
   // 이미지 파일이 있는 경우
@@ -139,6 +150,26 @@ router.delete("/:tweetId", async (req, res, next) => {
 
       // 인용된 트윗의 리트윗 카운트 -1
       await quotedOrigin.decrement("retweetedCount");
+    }
+
+    //// 해당 트윗이 해시태그를 가지고 있을 경우
+    const hashtags = await tweet.getHashtags();
+    console.log("hashtags", hashtags);
+    if (hashtags) {
+      hashtags.forEach(async hashtag => {
+        // tweetHashtags 테이블에서 삭제
+        await hashtag.removeHashtagTweets(tweet.id);
+
+        // 마지막 해시태그면 삭제
+        if (hashtag.count === 1) {
+          await hashtag.destroy();
+        } else {
+          // 아닐 경우 카운트 감소
+          hashtag.count--;
+
+          await hashtag.save();
+        }
+      });
     }
 
     // 트윗 삭제
@@ -255,6 +286,17 @@ router.post(
           })
         );
         await tweet.addHashtags(hashtagResults.map(result => result[0]));
+
+        // 기존에 있는 해시태그면 카운트 증가
+        hashtagResults.forEach(async result => {
+          const hashtag = result[0];
+          const newlyCreated = result[1];
+
+          if (!newlyCreated) {
+            hashtag.count++;
+            await hashtag.save();
+          }
+        });
       }
 
       // 이미지 파일이 있는 경우

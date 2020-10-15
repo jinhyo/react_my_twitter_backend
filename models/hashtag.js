@@ -8,6 +8,11 @@ module.exports = class Hashtag extends Model {
         tag: {
           type: Sequelize.STRING(30),
           allowNull: false
+        },
+        count: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 1
         }
       },
       {
