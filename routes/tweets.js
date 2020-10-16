@@ -359,6 +359,17 @@ router.post(
           })
         );
         await tweet.addHashtags(hashtagResults.map(result => result[0]));
+
+        // 기존에 있는 해시태그면 카운트 증가
+        hashtagResults.forEach(async result => {
+          const hashtag = result[0];
+          const newlyCreated = result[1];
+
+          if (!newlyCreated) {
+            hashtag.count++;
+            await hashtag.save();
+          }
+        });
       }
 
       // 이미지 파일이 있는 경우
