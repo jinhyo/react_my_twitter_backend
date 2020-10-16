@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { Tweet, Image, User, Hashtag } = require("../models");
+const { Tweet, Image, Hashtag } = require("../models");
 const { upload } = require("../lib/multer");
+const { isLoggedIn } = require("../middlewares/authMiddleware");
 const {
   getTweetWithFullAttributes,
   getTweetsWithFullAttributes,
@@ -13,52 +14,57 @@ const { BACKEND_URL } = require("../lib/constValue");
 const { Op } = require("sequelize");
 
 /*  트윗 추가 */
-router.post("/", upload.array("images", 5), async (req, res, next) => {
-  // 트윗 생성
-  const tweet = await Tweet.create({
-    contents: req.body.contents,
-    userId: req.user.id
-  });
-
-  const hashtags = req.body.contents.match(/#[^\s#]+/g);
-  // 해쉬태그가 있는 경우
-  if (hashtags) {
-    const hashtagResults = await Promise.all(
-      hashtags.map(hashtag => {
-        return Hashtag.findOrCreate({
-          where: { tag: hashtag.slice(1).toLowerCase() }
-        });
-      })
-    ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, false]]
-    await tweet.addHashtags(hashtagResults.map(result => result[0]));
-
-    // 기존에 있는 해시태그면 카운트 증가
-    hashtagResults.forEach(async result => {
-      const hashtag = result[0];
-      const newlyCreated = result[1];
-
-      if (!newlyCreated) {
-        hashtag.count++;
-        await hashtag.save();
-      }
+router.post(
+  "/",
+  isLoggedIn,
+  upload.array("images", 5),
+  async (req, res, next) => {
+    // 트윗 생성
+    const tweet = await Tweet.create({
+      contents: req.body.contents,
+      userId: req.user.id
     });
-  }
 
-  // 이미지 파일이 있는 경우
-  if (req.files.length > 0) {
-    req.files.forEach(async file => {
-      await Image.create({
-        src: `${BACKEND_URL}/images/${file.filename}`,
-        tweetId: tweet.id
+    const hashtags = req.body.contents.match(/#[^\s#]+/g);
+    // 해쉬태그가 있는 경우
+    if (hashtags) {
+      const hashtagResults = await Promise.all(
+        hashtags.map(hashtag => {
+          return Hashtag.findOrCreate({
+            where: { tag: hashtag.slice(1).toLowerCase() }
+          });
+        })
+      ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, false]]
+      await tweet.addHashtags(hashtagResults.map(result => result[0]));
+
+      // 기존에 있는 해시태그면 카운트 증가
+      hashtagResults.forEach(async result => {
+        const hashtag = result[0];
+        const newlyCreated = result[1];
+
+        if (!newlyCreated) {
+          hashtag.count++;
+          await hashtag.save();
+        }
       });
-    });
-    await tweet.update({ hasMedia: true });
+    }
+
+    // 이미지 파일이 있는 경우
+    if (req.files.length > 0) {
+      req.files.forEach(async file => {
+        await Image.create({
+          src: `${BACKEND_URL}/images/${file.filename}`,
+          tweetId: tweet.id
+        });
+      });
+      await tweet.update({ hasMedia: true });
+    }
+
+    const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
+
+    res.status(201).json(tweetWithOthers);
   }
-
-  const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
-
-  res.status(201).json(tweetWithOthers);
-});
+);
 
 /*  트윗들 반환 */
 router.get("/", async (req, res, next) => {
@@ -81,7 +87,7 @@ router.get("/", async (req, res, next) => {
 });
 
 /*  트윗 좋아요 표시 */
-router.post("/:tweetId/like", async (req, res, next) => {
+router.post("/:tweetId/like", isLoggedIn, async (req, res, next) => {
   const { tweetId } = req.params;
   try {
     const tweet = await Tweet.findOne({ where: { id: tweetId } });
@@ -98,7 +104,7 @@ router.post("/:tweetId/like", async (req, res, next) => {
 });
 
 /*  트윗 좋아요 삭제 */
-router.delete("/:tweetId/like", async (req, res, next) => {
+router.delete("/:tweetId/like", isLoggedIn, async (req, res, next) => {
   const { tweetId } = req.params;
   try {
     const tweet = await Tweet.findOne({ where: { id: tweetId } });
@@ -115,7 +121,7 @@ router.delete("/:tweetId/like", async (req, res, next) => {
 });
 
 /*  트윗 & 다른 트윗을 인용한 트윗 & 리트윗된 원본 트윗 삭제 */
-router.delete("/:tweetId", async (req, res, next) => {
+router.delete("/:tweetId", isLoggedIn, async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
   try {
     const tweet = await Tweet.findOne({ where: { id: tweetId } });
@@ -183,7 +189,7 @@ router.delete("/:tweetId", async (req, res, next) => {
 });
 
 /*  리트윗 */
-router.post("/:tweetId/retweet", async (req, res, next) => {
+router.post("/:tweetId/retweet", isLoggedIn, async (req, res, next) => {
   const retweetOriginId = parseInt(req.params.tweetId);
 
   try {
@@ -217,7 +223,7 @@ router.post("/:tweetId/retweet", async (req, res, next) => {
 });
 
 /*  리트윗 취소 */
-router.delete("/:tweetId/retweet", async (req, res, next) => {
+router.delete("/:tweetId/retweet", isLoggedIn, async (req, res, next) => {
   const retweetOriginId = parseInt(req.params.tweetId);
 
   try {
@@ -256,6 +262,7 @@ router.delete("/:tweetId/retweet", async (req, res, next) => {
 /*  트윗 인용하기 */
 router.post(
   "/:tweetId/quotation",
+  isLoggedIn,
   upload.array("images", 5),
   async (req, res, next) => {
     const quotedOriginId = parseInt(req.params.tweetId);
@@ -329,6 +336,7 @@ router.post(
 /*  트윗 댓글 추가 */
 router.post(
   "/:tweetId/comment",
+  isLoggedIn,
   upload.array("images", 5),
   async (req, res, next) => {
     const commentedOriginId = parseInt(req.params.tweetId);

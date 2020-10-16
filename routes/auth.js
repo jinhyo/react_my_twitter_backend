@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const { Tweet, Image, User, Hashtag } = require("../models");
+const { User } = require("../models");
 const bcrypt = require("bcrypt");
 const axios = require("axios");
 const { getUserWithFullAttributes } = require("../lib/utils");
@@ -9,7 +9,7 @@ const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
 const { FRONTEND_URL } = require("../lib/constValue");
 const md5 = require("md5");
 
-//// 구글 로그인
+/*  구글 로그인 */
 router.get(
   "/login/google",
   isNotLoggedIn,
@@ -28,7 +28,7 @@ router.get(
   }
 );
 
-//// 페이스북 로그인
+/*  페이스북 로그인 */
 router.get(
   "/login/facebook",
   isNotLoggedIn,
@@ -45,7 +45,7 @@ router.get(
   }
 );
 
-//// 네이버 로그인
+/*  네이버 로그인 */
 router.get(
   "/login/naver",
   isNotLoggedIn,
@@ -64,7 +64,7 @@ router.get(
   }
 );
 
-//// 회원가입
+/*  회원가입 */
 router.post("/register", isNotLoggedIn, async (req, res, next) => {
   const { nickname, email, password, selfIntro, location } = req.body;
 
@@ -118,7 +118,7 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
   }
 });
 
-//// 로컬 로그인
+/*  로컬 로그인 */
 router.post("/login", isNotLoggedIn, (req, res, next) => {
   passport.authenticate("local", (serverError, user, errorInfo) => {
     if (serverError) {
@@ -144,14 +144,14 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
   })(req, res, next);
 });
 
-//// 로그아웃
+/*  로그아웃 */
 router.get("/logout", isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();
   res.end();
 });
 
-//// 로그인 유저 정보 전송
+/*  로그인 유저 정보 전송 */
 router.get("/login-user", async (req, res, next) => {
   console.log("req.session", req.session);
 
@@ -169,7 +169,7 @@ router.get("/login-user", async (req, res, next) => {
   }
 });
 
-//// 중복 닉네임 검사
+/*  중복 닉네임 검사 */
 router.get("/nicknames/:nickname", async (req, res, next) => {
   const user = await User.findOne({ where: { nickname: req.params.nickname } });
   console.log("/users/:nickname");
@@ -181,8 +181,8 @@ router.get("/nicknames/:nickname", async (req, res, next) => {
   }
 });
 
-//// 중복 이메일 검사
-router.get("/emails/:email", async (req, res, next) => {
+/*  중복 이메일 검사 */
+router.get("/emails/:email", isNotLoggedIn, async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.params.email } });
   console.log("/users/:email");
 

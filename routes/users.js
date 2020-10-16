@@ -3,6 +3,7 @@ const router = express.Router();
 const { Tweet, Image, User } = require("../models");
 const { getUserWithFullAttributes } = require("../lib/utils");
 const { upload } = require("../lib/multer");
+const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
 const {
   getSpecificUsersTweets,
   getSpecificUsersComments,
@@ -12,7 +13,7 @@ const {
 const { BACKEND_URL } = require("../lib/constValue");
 
 /*  팔로우 */
-router.post("/:userId/follow", async (req, res, next) => {
+router.post("/:userId/follow", isLoggedIn, async (req, res, next) => {
   const { userId } = req.params;
   try {
     const targetUser = await User.findOne({ where: { id: userId } });
@@ -29,7 +30,7 @@ router.post("/:userId/follow", async (req, res, next) => {
 });
 
 /*  언팔로우 */
-router.delete("/:userId/follow", async (req, res, next) => {
+router.delete("/:userId/follow", isLoggedIn, async (req, res, next) => {
   const { userId } = req.params;
   try {
     const targetUser = await User.findOne({ where: { id: userId } });
@@ -88,7 +89,7 @@ router.get("/like/:tweetId", async (req, res, next) => {
   }
 });
 
-/*  특정 유저 정보 전송 */
+/*  특정 유저 정보 반환 */
 router.get("/:userId", async (req, res, next) => {
   const userId = parseInt(req.params.userId);
   try {
@@ -200,7 +201,7 @@ router.get("/:userId/favorites", async (req, res, next) => {
 });
 
 /* 프로필 수정 */
-router.patch("/profile", async (req, res, next) => {
+router.patch("/profile", isLoggedIn, async (req, res, next) => {
   const { nickname, selfIntro, location } = req.body;
 
   try {
@@ -224,29 +225,34 @@ router.patch("/profile", async (req, res, next) => {
 });
 
 /* 아바타 사진 변경 */
-router.patch("/avatar", upload.single("image"), async (req, res, next) => {
-  const imageFile = req.file;
-  console.log("imageFile", imageFile);
+router.patch(
+  "/avatar",
+  isLoggedIn,
+  upload.single("image"),
+  async (req, res, next) => {
+    const imageFile = req.file;
+    console.log("imageFile", imageFile);
 
-  if (!imageFile) {
-    return res.status(404).send("이미지 파일이 없습니다.");
+    if (!imageFile) {
+      return res.status(404).send("이미지 파일이 없습니다.");
+    }
+
+    const avatarURL = `${BACKEND_URL}/images/${imageFile.filename}`;
+
+    try {
+      await User.update(
+        {
+          avatarURL
+        },
+        { where: { id: req.user.id } }
+      );
+
+      res.json({ avatarURL });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
   }
-
-  const avatarURL = `${BACKEND_URL}/images/${imageFile.filename}`;
-
-  try {
-    await User.update(
-      {
-        avatarURL
-      },
-      { where: { id: req.user.id } }
-    );
-
-    res.json({ avatarURL });
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-});
+);
 
 module.exports = router;
