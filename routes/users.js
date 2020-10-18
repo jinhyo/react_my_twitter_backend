@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { Tweet, Image, User } = require("../models");
+const { Tweet, User } = require("../models");
 const { getUserWithFullAttributes } = require("../lib/utils");
 const { upload } = require("../lib/multer");
-const { isLoggedIn, isNotLoggedIn } = require("../middlewares/authMiddleware");
+const { isLoggedIn } = require("../middlewares/authMiddleware");
 const {
   getSpecificUsersTweets,
   getSpecificUsersComments,
@@ -57,7 +57,7 @@ router.get("/retweet/:tweetId", async (req, res, next) => {
     }
 
     const users = await targetTweet.getChoosers({
-      attributes: ["id", "nickname", "selfIntro", "avatarURL"]
+      attributes: ["id", "nickname", "selfIntro", "avatarURL", " location"]
     });
 
     res.json(users);
@@ -78,7 +78,7 @@ router.get("/like/:tweetId", async (req, res, next) => {
     }
 
     const users = await targetTweet.getLikers({
-      attributes: ["id", "nickname", "selfIntro", "avatarURL"],
+      attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
       joinTableAttributes: []
     });
 
@@ -114,7 +114,7 @@ router.get("/:userId/followings", async (req, res, next) => {
     const user = await User.findOne({ where: { id: userId } });
 
     const followings = await user.getFollowings({
-      attributes: ["id", "nickname", "selfIntro", "avatarURL"],
+      attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
       joinTableAttributes: []
     });
 
@@ -133,7 +133,7 @@ router.get("/:userId/followers", async (req, res, next) => {
     const user = await User.findOne({ where: { id: userId } });
 
     const followers = await user.getFollowers({
-      attributes: ["id", "nickname", "selfIntro", "avatarURL"],
+      attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
       joinTableAttributes: []
     });
 
@@ -231,7 +231,6 @@ router.patch(
   upload.single("image"),
   async (req, res, next) => {
     const imageFile = req.file;
-    console.log("imageFile", imageFile);
 
     if (!imageFile) {
       return res.status(404).send("이미지 파일이 없습니다.");

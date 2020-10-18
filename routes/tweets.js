@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { Op } = require("sequelize");
+
 const { Tweet, Image, Hashtag } = require("../models");
 const { upload } = require("../lib/multer");
 const { isLoggedIn } = require("../middlewares/authMiddleware");
@@ -10,8 +12,18 @@ const {
   getQuotationsWithFullAttributes,
   getCommentsWithFullAttributes
 } = require("../lib/utils");
-const { BACKEND_URL } = require("../lib/constValue");
-const { Op } = require("sequelize");
+const { BACKEND_URL, FRONTEND_URL } = require("../lib/constValue");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.naver.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.NAVER_EMAIL,
+    pass: process.env.NAVER_EMAIL_PWD
+  }
+});
 
 /*  트윗 추가 */
 router.post(
@@ -19,56 +31,82 @@ router.post(
   isLoggedIn,
   upload.array("images", 5),
   async (req, res, next) => {
-    // 트윗 생성
-    const tweet = await Tweet.create({
-      contents: req.body.contents,
-      userId: req.user.id
-    });
+    try {
+      // 트윗 생성
+      const tweet = await Tweet.create({
+        contents: req.body.contents,
+        userId: req.user.id
+      });
 
-    const hashtags = req.body.contents.match(/#[^\s#]+/g);
-    // 해쉬태그가 있는 경우
-    if (hashtags) {
-      const hashtagResults = await Promise.all(
-        hashtags.map(hashtag => {
-          return Hashtag.findOrCreate({
-            where: { tag: hashtag.slice(1).toLowerCase() }
+      const hashtags = req.body.contents.match(/#[^\s#]+/g);
+      // 해쉬태그가 있는 경우
+      if (hashtags) {
+        const hashtagResults = await Promise.all(
+          hashtags.map(hashtag => {
+            return Hashtag.findOrCreate({
+              where: { tag: hashtag.slice(1).toLowerCase() }
+            });
+          })
+        ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, false]]
+        await tweet.addHashtags(hashtagResults.map(result => result[0]));
+
+        // 기존에 있는 해시태그면 카운트 증가
+        hashtagResults.forEach(async result => {
+          const hashtag = result[0];
+          const newlyCreated = result[1];
+
+          if (!newlyCreated) {
+            hashtag.count++;
+            await hashtag.save();
+          }
+        });
+      }
+
+      // 이미지 파일이 있는 경우
+      if (req.files.length > 0) {
+        req.files.forEach(async file => {
+          await Image.create({
+            src: `${BACKEND_URL}/images/${file.filename}`,
+            tweetId: tweet.id
           });
-        })
-      ); // 결과물 ex) hashtagResult = [[hashtag1, true],[hashtag2, false]]
-      await tweet.addHashtags(hashtagResults.map(result => result[0]));
+        });
+        await tweet.update({ hasMedia: true });
+      }
 
-      // 기존에 있는 해시태그면 카운트 증가
-      hashtagResults.forEach(async result => {
-        const hashtag = result[0];
-        const newlyCreated = result[1];
+      const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
 
-        if (!newlyCreated) {
-          hashtag.count++;
-          await hashtag.save();
+      // 관리자에게 메일 보내기
+      transporter.verify(error => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log("메일 전송 완료");
         }
       });
-    }
 
-    // 이미지 파일이 있는 경우
-    if (req.files.length > 0) {
-      req.files.forEach(async file => {
-        await Image.create({
-          src: `${BACKEND_URL}/images/${file.filename}`,
-          tweetId: tweet.id
-        });
+      transporter.sendMail({
+        from: '"My Twitter 관리자" <sosilion@naver.com>',
+        to: '"My Twitter 관리자" <sosilion@naver.com>',
+        subject: "My Twitter에 트윗 추가됨",
+        html: `
+        <div>
+          <a href="${FRONTEND_URL}/tweets/${tweet.id}">트윗이 추가 되었습니다.</a>
+          <p>트윗 내용: ${req.body.contents}</p>
+        </div>
+        `
       });
-      await tweet.update({ hasMedia: true });
+
+      res.status(201).json(tweetWithOthers);
+    } catch (error) {
+      console.error(error);
+      next(error);
     }
-
-    const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
-
-    res.status(201).json(tweetWithOthers);
   }
 );
 
 /*  트윗들 반환 */
 router.get("/", async (req, res, next) => {
-  const lastId = req.query.lastId;
+  const lastId = parseInt(req.query.lastId);
   const limit = parseInt(req.query.limit);
   const where = { commentedOriginId: null };
 
@@ -120,7 +158,7 @@ router.delete("/:tweetId/like", isLoggedIn, async (req, res, next) => {
   }
 });
 
-/*  트윗 & 다른 트윗을 인용한 트윗 & 리트윗된 원본 트윗 삭제 */
+/*  트윗 & 다른 트윗을 인용한 트윗 & 리트윗된 원본 트윗 & 댓글 트윗 삭제 */
 router.delete("/:tweetId", isLoggedIn, async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
   try {

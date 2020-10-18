@@ -8,6 +8,7 @@ router.get("/trend", async (req, res, next) => {
   try {
     const hashtags = await Hashtag.findAll({
       order: [["count", "DESC"]],
+      attributes: ["id", "tag", "count"],
       limit: 3
     });
 
