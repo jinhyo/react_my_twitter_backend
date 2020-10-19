@@ -45,7 +45,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(hpp());
   app.use(
     cors({
-      origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
+      origin: ["http://localhost:3003", "http://13.125.238.74"], // or true로 해도 됨
       credentials: true
     })
   );
