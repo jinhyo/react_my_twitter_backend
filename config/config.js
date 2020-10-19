@@ -26,7 +26,8 @@ module.exports = {
     database: "my_twitter",
     host: "127.0.0.1",
     dialect: "mysql",
+    operatorsAliases: "0",
     timezone: "+09:00",
-    operatorsAliases: false
+    logging: false
   }
 };
