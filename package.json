@@ -6,7 +6,7 @@
   "license": "ISC",
   "scripts": {
     "dev": "nodemon ./bin/www",
-    "start": "node ./bin/www"
+    "start": "cross-env NODE_ENV=production PORT=80 pm2 start ./bin/www"
   },
   "dependencies": {
     "axios": "^0.20.0",
@@ -17,6 +17,8 @@
     "dotenv": "^8.2.0",
     "express": "~4.17.1",
     "express-session": "^1.17.1",
+    "helmet": "^4.1.1",
+    "hpp": "^0.2.3",
     "http-errors": "~1.8.0",
     "http-proxy-middleware": "^1.0.5",
     "jade": "~1.11.0",

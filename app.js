@@ -8,6 +8,9 @@ const session = require("express-session");
 const passport = require("passport");
 const passportConfig = require("./passport");
 const cors = require("cors");
+const helmet = require("helmet");
+const hpp = require("hpp");
+const fs = require("fs");
 require("dotenv").config();
 
 const authRouter = require("./routes/auth");
@@ -17,6 +20,14 @@ const hashtagRouter = require("./routes/hashtags");
 const searchRouter = require("./routes/search");
 
 const app = express();
+
+// images 폴더가 없을 경우 자동 생성
+try {
+  fs.accessSync("images");
+} catch (error) {
+  console.log("images 폴더가 없으므로 생성합니다.");
+  fs.mkdirSync("images");
+}
 
 // db 접속
 sequelize
@@ -28,20 +39,30 @@ sequelize
   })
   .catch(err => console.error(err));
 
-app.use(
-  cors({
-    origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
-    credentials: true // 브라우저와 백엔드 서버의 도메인이 다를 경우 쿠키 공유가 불가능
-    // 이를 해결하기 위해 credentials: true 입력(기본값은 false)
-    // 브라우저에서 사용하는 API에는 {withCredentials: true}를 넣어줘야 한다.
-  })
-);
+if (process.env.NODE_ENV === "production") {
+  app.use(logger("combined"));
+  app.use(helmet());
+  app.use(hpp());
+  app.use(
+    cors({
+      origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
+      credentials: true
+    })
+  );
+} else {
+  app.use(logger("dev"));
+  app.use(
+    cors({
+      origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
+      credentials: true
+    })
+  );
+}
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
-app.use(logger("dev"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(express.json());
@@ -51,11 +72,11 @@ app.use(
   session({
     resave: false,
     saveUninitialized: false,
-    secret: process.env.COOKIE_SECRET
-    // cookie: {
-    // httpOnly: true // 자바스크립트로 장난치는 것 금지 (브라우저의 console창에서의 해킹 방지)
-    // secure: true // https에서만 사용 가능
-    // }
+    secret: process.env.COOKIE_SECRET,
+    cookie: {
+      httpOnly: true, // 자바스크립트로 장난치는 것 금지 (브라우저의 console창에서의 해킹 방지)
+      secure: false // https에서만 사용 가능
+    }
   })
 );
 

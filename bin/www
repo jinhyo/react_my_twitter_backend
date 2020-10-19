@@ -13,6 +13,10 @@ var http = require("http");
  */
 
 var port = normalizePort(process.env.PORT || "3001");
+
+console.log("current port: ", port);
+console.log("current NODE_ENV: ", process.env.NODE_ENV);
+
 app.set("port", port);
 
 /**
