@@ -67,7 +67,7 @@ router.post(
         req.files.forEach(async file => {
           let src;
           if (process.env.NODE_ENV === "production") {
-            src = imageName.location; // S3용
+            src = file.location; // S3용
           } else {
             src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
           }
@@ -356,7 +356,7 @@ router.post(
         req.files.forEach(async file => {
           let src;
           if (process.env.NODE_ENV === "production") {
-            src = imageName.location; // S3용
+            src = file.location; // S3용
           } else {
             src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
           }
@@ -437,7 +437,7 @@ router.post(
         req.files.forEach(async file => {
           let src;
           if (process.env.NODE_ENV === "production") {
-            src = imageName.location; // S3용
+            src = file.location; // S3용
           } else {
             src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
           }
