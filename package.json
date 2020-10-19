@@ -6,6 +6,7 @@
   "license": "ISC",
   "scripts": {
     "dev": "nodemon ./bin/www",
+    "dev-detail": "cross-env NODE_ENV=production nodemon ./bin/www",
     "start": "cross-env NODE_ENV=production pm2 start ./bin/www"
   },
   "dependencies": {

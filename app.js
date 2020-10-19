@@ -36,6 +36,7 @@ sequelize
   // .sync({ force: true })
   .then(() => {
     console.log("db connection success!");
+    console.log("process.env.NODE_ENV", process.env.NODE_ENV);
   })
   .catch(err => console.error(err));
 
