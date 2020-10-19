@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(hpp());
   app.use(
     cors({
-      origin: "http://jtwitter.me",
+      origin: ["http://jtwitter.me", "http://www.jtwitter.me"],
       credentials: true
     })
   );

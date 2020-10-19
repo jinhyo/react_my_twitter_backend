@@ -65,8 +65,15 @@ router.post(
       // 이미지 파일이 있는 경우
       if (req.files.length > 0) {
         req.files.forEach(async file => {
+          let src;
+          if (process.env.NODE_ENV === "production") {
+            src = imageName.location; // S3용
+          } else {
+            src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
+          }
+
           await Image.create({
-            src: `${BACKEND_URL}/images/${file.filename}`,
+            src,
             tweetId: tweet.id
           });
         });
@@ -347,8 +354,15 @@ router.post(
       // 이미지 파일이 있는 경우
       if (req.files.length > 0) {
         req.files.forEach(async file => {
+          let src;
+          if (process.env.NODE_ENV === "production") {
+            src = imageName.location; // S3용
+          } else {
+            src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
+          }
+
           await Image.create({
-            src: `${BACKEND_URL}/images/${file.filename}`,
+            src,
             tweetId: tweet.id
           });
         });
@@ -421,8 +435,15 @@ router.post(
       // 이미지 파일이 있는 경우
       if (req.files.length > 0) {
         req.files.forEach(async file => {
+          let src;
+          if (process.env.NODE_ENV === "production") {
+            src = imageName.location; // S3용
+          } else {
+            src = `${BACKEND_URL}/images/${file.filename}`; // 로컬용
+          }
+
           await Image.create({
-            src: `${BACKEND_URL}/images/${file.filename}`,
+            src,
             tweetId: tweet.id
           });
         });
