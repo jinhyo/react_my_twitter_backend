@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(hpp());
   app.use(
     cors({
-      origin: ["http://localhost:3003", "http://13.125.238.74"], // or true로 해도 됨
+      origin: "http://jtwitter.me",
       credentials: true
     })
   );
@@ -54,7 +54,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(logger("dev"));
   app.use(
     cors({
-      origin: /* "http://localhost:3003" */ true, // or true로 해도 됨
+      origin: true,
       credentials: true
     })
   );
@@ -75,8 +75,9 @@ app.use(
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
     cookie: {
-      httpOnly: true, // 자바스크립트로 장난치는 것 금지 (브라우저의 console창에서의 해킹 방지)
-      secure: false // https에서만 사용 가능
+      httpOnly: true,
+      secure: false,
+      domain: process.env.NODE_ENV === "production" && ".jtwitter.me"
     }
   })
 );
