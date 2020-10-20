@@ -236,7 +236,12 @@ router.patch(
       return res.status(404).send("이미지 파일이 없습니다.");
     }
 
-    const avatarURL = `${BACKEND_URL}/images/${imageFile.filename}`;
+    let avatarURL;
+    if (process.env.NODE_ENV === "production") {
+      avatarURL = imageFile.location; // S3용
+    } else {
+      avatarURL = `${BACKEND_URL}/images/${imageFile.filename}`; // 로컬용
+    }
 
     try {
       await User.update(
