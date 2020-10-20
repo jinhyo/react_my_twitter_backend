@@ -103,7 +103,11 @@ router.post(
         `
       });
 
-      res.status(201).json(tweetWithOthers);
+      // 방금 추가된 트윗의 경우 원본 이미지 파일을 쓰기 위해 newlyAdded 속성을 추가
+      const newTweet = tweetWithOthers.toJSON();
+      newTweet.newlyAdded = true;
+
+      res.status(201).json(newTweet);
     } catch (error) {
       console.error(error);
       next(error);
@@ -377,7 +381,11 @@ router.post(
 
       const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
 
-      res.status(201).json(tweetWithOthers);
+      // 방금 추가된 트윗의 경우 원본 이미지 파일을 쓰기 위해 newlyAdded 속성을 추가
+      const newTweet = tweetWithOthers.toJSON();
+      newTweet.newlyAdded = true;
+
+      res.status(201).json(newTweet);
     } catch (error) {
       console.error(error);
       next(error);
@@ -452,7 +460,11 @@ router.post(
 
       const tweetWithOthers = await getTweetWithFullAttributes(tweet.id);
 
-      res.status(201).json(tweetWithOthers);
+      // 방금 추가된 트윗의 경우 원본 이미지 파일을 쓰기 위해 newlyAdded 속성을 추가
+      const newTweet = tweetWithOthers.toJSON();
+      newTweet.newlyAdded = true;
+
+      res.status(201).json(newTweet);
     } catch (error) {
       console.error(error);
       next(error);
