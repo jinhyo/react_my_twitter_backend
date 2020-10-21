@@ -76,7 +76,7 @@ app.use(
     secret: process.env.COOKIE_SECRET,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" ? true:false
+      secure: process.env.NODE_ENV === "production" ? true : false,
       domain: process.env.NODE_ENV === "production" && ".jtwitter.me"
     }
   })
