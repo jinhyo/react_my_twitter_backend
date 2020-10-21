@@ -69,8 +69,11 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
+
+app.set("trust proxy", 1);
 app.use(
   session({
+    proxy: process.env.NODE_ENV === "production" ? true : false,
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
