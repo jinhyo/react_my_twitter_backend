@@ -209,7 +209,6 @@ router.delete("/:tweetId", isLoggedIn, async (req, res, next) => {
 
     //// 해당 트윗이 해시태그를 가지고 있을 경우
     const hashtags = await tweet.getHashtags();
-    console.log("hashtags", hashtags);
     if (hashtags) {
       hashtags.forEach(async hashtag => {
         // tweetHashtags 테이블에서 삭제
