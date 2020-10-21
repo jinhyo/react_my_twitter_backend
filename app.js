@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(hpp());
   app.use(
     cors({
-      origin: ["http://jtwitter.me", "http://www.jtwitter.me"],
+      origin: ["https://jtwitter.me", "https://www.jtwitter.me"],
       credentials: true
     })
   );
@@ -76,7 +76,7 @@ app.use(
     secret: process.env.COOKIE_SECRET,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production" ? true:false
       domain: process.env.NODE_ENV === "production" && ".jtwitter.me"
     }
   })
