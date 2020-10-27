@@ -41,6 +41,7 @@ sequelize
   .catch(err => console.error(err));
 
 if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
   app.use(logger("combined"));
   app.use(helmet());
   app.use(hpp());
@@ -70,7 +71,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-app.set("trust proxy", 1);
 app.use(
   session({
     proxy: process.env.NODE_ENV === "production" ? true : false,
