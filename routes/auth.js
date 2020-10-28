@@ -97,9 +97,9 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
 
     // 유저 정보 생성
     const user = await User.create({
-      email,
+      email: email.trim(),
       password: passwordHash,
-      nickname,
+      nickname: nickname.trim(),
       selfIntro,
       location,
       avatarURL
