@@ -21,10 +21,10 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: `/login`
+    failureRedirect: `${FRONTEND_URL}/login`
   }),
   (req, res) => {
-    res.redirect("/");
+    res.redirect(FRONTEND_URL);
   }
 );
 
