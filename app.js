@@ -80,7 +80,8 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production" ? true : false,
-      domain: process.env.NODE_ENV === "production" && ".jtwitter.me"
+      domain: process.env.NODE_ENV === "production" && ".jtwitter.me",
+      sameSite: "none"
     }
   })
 );
