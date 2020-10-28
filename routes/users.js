@@ -49,15 +49,17 @@ router.delete("/:userId/follow", isLoggedIn, async (req, res, next) => {
 /*  특정 트윗을 리트윗한 유저들 반환 */
 router.get("/retweet/:tweetId", async (req, res, next) => {
   const tweetId = parseInt(req.params.tweetId);
-
+  console.log("tweetId", tweetId);
   try {
     const targetTweet = await Tweet.findOne({ where: { id: tweetId } });
+
     if (!targetTweet) {
       return res.status(404).send("해당 트윗이 존재하지 않습니다.");
     }
 
     const users = await targetTweet.getChoosers({
-      attributes: ["id", "nickname", "selfIntro", "avatarURL", " location"]
+      attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
+      joinTableAttributes: []
     });
 
     res.json(users);
