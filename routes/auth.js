@@ -70,14 +70,16 @@ router.post("/register", isNotLoggedIn, async (req, res, next) => {
 
   try {
     // 중복 닉네임 방지
-    const isSameNickname = await User.findOne({ where: { nickname } });
+    const isSameNickname = await User.findOne({
+      where: { nickname: nickname.trim() }
+    });
     if (isSameNickname) {
       return res.status(403).send("이미 사용중인 닉네임 입니다.");
     }
 
     // 중복 이메일('local') 방지
     const isSameEmail = await User.findOne({
-      where: { email, loginType: "local" }
+      where: { email: email.trim(), loginType: "local" }
     });
 
     if (isSameEmail) {
@@ -171,7 +173,9 @@ router.get("/login-user", async (req, res, next) => {
 
 /*  중복 닉네임 검사 */
 router.get("/nicknames/:nickname", async (req, res, next) => {
-  const user = await User.findOne({ where: { nickname: req.params.nickname } });
+  const user = await User.findOne({
+    where: { nickname: req.params.nickname.trim() }
+  });
   console.log("/users/:nickname");
 
   if (user) {
@@ -183,7 +187,9 @@ router.get("/nicknames/:nickname", async (req, res, next) => {
 
 /*  중복 이메일 검사 */
 router.get("/emails/:email", isNotLoggedIn, async (req, res, next) => {
-  const user = await User.findOne({ where: { email: req.params.email } });
+  const user = await User.findOne({
+    where: { email: req.params.email.trim() }
+  });
   console.log("/users/:email");
 
   if (user) {
