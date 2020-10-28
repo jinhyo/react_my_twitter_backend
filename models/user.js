@@ -24,7 +24,7 @@ module.exports = class User extends Model {
           allowNull: false
         },
         avatarURL: {
-          type: Sequelize.STRING,
+          type: Sequelize.TEXT,
           allowNull: false
         },
         snsId: Sequelize.STRING(30),
