@@ -108,23 +108,6 @@ router.get("/:userId", async (req, res, next) => {
   }
 });
 
-/*  특정 유저의 닉네임으로 아이디 검색 후 반환 */
-router.get("/id/:nickname", async (req, res, next) => {
-  const nickname = req.params.nickname;
-  try {
-    const user = await User.findOne({ where: { nickname } });
-
-    if (!user) {
-      return res.json({ userId: nickname });
-    }
-
-    res.json({ userId: user.id });
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-});
-
 /*  특정 유저의 팔로잉들 반환 */
 router.get("/:userId/followings", async (req, res, next) => {
   const userId = parseInt(req.params.userId);
