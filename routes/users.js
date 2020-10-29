@@ -8,7 +8,8 @@ const {
   getSpecificUsersTweets,
   getSpecificUsersComments,
   getSpecificUsersMedias,
-  getSpecificUsersFavorits
+  getSpecificUsersFavorits,
+  getUserWithFullAttributesByNickname,
 } = require("../lib/utils");
 const { BACKEND_URL } = require("../lib/constValue");
 
@@ -59,7 +60,7 @@ router.get("/retweet/:tweetId", async (req, res, next) => {
 
     const users = await targetTweet.getChoosers({
       attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
-      joinTableAttributes: []
+      joinTableAttributes: [],
     });
 
     res.json(users);
@@ -81,7 +82,7 @@ router.get("/like/:tweetId", async (req, res, next) => {
 
     const users = await targetTweet.getLikers({
       attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
-      joinTableAttributes: []
+      joinTableAttributes: [],
     });
 
     res.json(users);
@@ -92,11 +93,10 @@ router.get("/like/:tweetId", async (req, res, next) => {
 });
 
 /*  특정 유저 정보 반환 */
-router.get("/:userId", async (req, res, next) => {
-  const userId = parseInt(req.params.userId);
+router.get("/:nickname", async (req, res, next) => {
+  const nickname = decodeURIComponent(req.params.nickname);
   try {
-    const user = await getUserWithFullAttributes(userId);
-
+    const user = await getUserWithFullAttributesByNickname(nickname);
     if (!user) {
       return res.status(404).send("해당 유저가 존재하지 않습니다.");
     }
@@ -117,7 +117,7 @@ router.get("/:userId/followings", async (req, res, next) => {
 
     const followings = await user.getFollowings({
       attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
-      joinTableAttributes: []
+      joinTableAttributes: [],
     });
 
     res.json(followings);
@@ -136,7 +136,7 @@ router.get("/:userId/followers", async (req, res, next) => {
 
     const followers = await user.getFollowers({
       attributes: ["id", "nickname", "selfIntro", "avatarURL", "location"],
-      joinTableAttributes: []
+      joinTableAttributes: [],
     });
 
     res.json(followers);
@@ -248,7 +248,7 @@ router.patch(
     try {
       await User.update(
         {
-          avatarURL
+          avatarURL,
         },
         { where: { id: req.user.id } }
       );
