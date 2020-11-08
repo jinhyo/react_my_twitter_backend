@@ -3,3 +3,5 @@
 package-lock.json
 /config/googleOAuth.json
 /images
+
+passport-local.d.ts

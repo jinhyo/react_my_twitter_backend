@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "ES2019",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "typeRoots": ["./types"]
+  },
+  "include": ["./app.ts"],
+  "exclude": ["node_modules"]
+}
